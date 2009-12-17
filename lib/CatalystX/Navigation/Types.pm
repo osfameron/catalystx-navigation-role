@@ -4,6 +4,7 @@ use MooseX::Types -declare => [
     qw/ ARCxNavigation 
         MyC
         MyCController
+        MyCAction
         MyCActionChain
         MyCxNavigation
     /
@@ -15,6 +16,8 @@ subtype MyC,
     as class_type('Catalyst');
 subtype MyCController, 
     as class_type('Catalyst::Controller');
+subtype MyCAction, 
+    as class_type('Catalyst::Action');
 subtype MyCActionChain, 
     as class_type('Catalyst::ActionChain');
 subtype MyCxNavigation, 

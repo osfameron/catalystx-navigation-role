@@ -1,0 +1,5 @@
+<h1>NavTest</h1>
+<h2>Navigation</h2>
+TODO
+<h2>Action Name</h2>
+[% c.action.name %]

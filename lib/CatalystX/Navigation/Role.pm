@@ -10,10 +10,12 @@ role CatalystX::Navigation::Role {
 
     has 'navigation' => (
         is      => 'rw',
-        isa     => ArrayRef,
-        default => sub { [] },
+        isa     => HashRef['Catalyst::Navigation'],
+        default => sub { +{} },
         handles => {
-            all_possible_navs => 'elements',
+            all_possible_navs => 'values',
+            _add_nav          => 'set',
+            get_nav           => 'get', # will only get by full private path
         },
     );
 
@@ -25,26 +27,48 @@ role CatalystX::Navigation::Role {
     }
 
     # I'd use a normal Moose coercion, but I also need $c... d'oh
-    multi method _coerce_nav(MyC $c, MyCxNavigation $obj) {
-        $obj;
+
+    multi method _coerce_action(MyC $c, MyCAction $action) {
+        $action;
+    }
+    multi method _coerce_action(MyC $c, Str $str) {
+           $self->action_for($str)
+        || $$c->dispatcher->get_action_by_path($str);
+    }
+
+    multi method _coerce_nav(MyC $c, MyCxNavigation $nav) {
+        $nav;
     }
     multi method _coerce_nav(MyC $c, Str $str) {
-        my $action = $c->dispatcher->get_action_by_path($str);
+        my $action = $self->_coerce_action($c, $str);
         my ($order) = $action->attributes->{Order};
 
         CatalystX::Navigation->new(
-            order  => $order || 101,
+            order  => $order || 50,
             action => $action,
         );
     }
     multi method _coerce_nav(MyC $c, HashRef $hash) {
-        CatalystX::Navigation->new( $hash );
+        CatalystX::Navigation->new( 
+            %$hash,
+            $self->_coerce_action($c, $hash->{action}) );
+    }
+
+    multi method add_nav(MyC $c, ArrayRef $arr) {
+        for my $x (@$arr) {
+            $self->add_nav($c, $x);
+        }
+    }
+    multi method add_nav(MyC $c, Any $x) {
+        my $nav = $self->_coerce_nav($x)
+            or die "$x cannot be coerced into a CatalystX::Navigation!";
+
+        my $key = $nav->action->name;
+        $self->_add_nav($key, $nav);
     }
 
     method get_navigation_methods (MyCController $self: MyC $c) {
-        my @possible_navs = map 
-            { $self->_coerce_nav($c, $_) }
-                 $self->all_possible_navs;
+        my @possible_navs = $self->all_possible_navs;
 
         my @allowed_navs = $self->get_allowed_navs($c, \@possible_navs);
 

@@ -1,19 +1,18 @@
 use strict;
 use warnings;
-use ExtUtils::MakeMaker;
+use inc::Module::Install;
 
-WriteMakefile(
-    NAME                => 'CatalystX::Navigation::Role',
-    AUTHOR              => q{osfameron <osfameron@cpan.org>},
-    VERSION_FROM        => 'lib/CatalystX/Navigation/Role.pm',
-    ABSTRACT_FROM       => 'lib/CatalystX/Navigation/Role.pm',
-    ($ExtUtils::MakeMaker::VERSION >= 6.3002
-      ? ('LICENSE'=> 'perl')
-      : ()),
-    PL_FILES            => {},
-    PREREQ_PM => {
-        'Test::More' => 0,
-    },
-    dist                => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
-    clean               => { FILES => 'CatalystX-Navigation-Role-*' },
-);
+name        'CatalystX::Navigation';
+all_from    'lib/CatalystX/Navigation.pm';
+
+requires 'Catalyst';
+requires 'Catalyst::Plugin::Authentication';
+requires 'Catalyst::ActionRole::ACL';
+
+test_requires 'Catalyst::View::TT';
+
+license     'perl';
+author      'osfameron';
+
+auto_install;
+WriteAll;
